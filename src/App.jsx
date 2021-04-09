@@ -17,24 +17,29 @@ const App = () => {
     const prevOptions = options
     Promise.resolve(setOptions(null)).then(
       () => {
-        console.log({
-          prevOptions
-        });
         setOptions(prevOptions)
       }
     )
   }
 
   useEffect(() => {
-    window.addEventListener("beforeunload", onUnload);
+    window.addEventListener("beforeunload", clearScoreFromLocalStorage);
 
     return () => {
-      window.removeEventListener("beforeunload", onUnload);
+      window.removeEventListener("beforeunload", clearScoreFromLocalStorage);
     }
   }, [])
 
-  const onUnload = () => {
+  const clearScoreFromLocalStorage = () => {
     localStorage.clear();
+  }
+
+  const goToMainMenu = () => {
+    setOptions(null);
+  }
+
+  const chooseGameLevel = (cardsQuantity) => {
+    setOptions(cardsQuantity);
   }
 
   return (
@@ -45,9 +50,9 @@ const App = () => {
         <div>
           {options === null ? (
             <>
-              <button onClick={() => setOptions(12)}>Easy</button>
-              <button onClick={() => setOptions(18)}>Medium</button>
-              <button onClick={() => setOptions(24)}>Hard</button>
+              <button onClick={() => chooseGameLevel(12)}>Easy</button>
+              <button onClick={() => chooseGameLevel(18)}>Medium</button>
+              <button onClick={() => chooseGameLevel(24)}>Hard</button>
             </>
           ) : (
             <>
@@ -56,7 +61,7 @@ const App = () => {
               >
                 Reset
               </button>
-              <button onClick={() => setOptions(null)}>Main Menu</button>
+              <button onClick={goToMainMenu}>Main Menu</button>
             </>
           )}
         </div>

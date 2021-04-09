@@ -9,19 +9,15 @@ const Game = ({ options, setOptions, highScore, setHighScore }) => {
   const [flippedIndexes, setFlippedIndexes] = useState([]);
 
   useEffect(() => {
-    const newGame = []
+    let newGame = []
     for (let i = 0; i < options / 2; i++) {
-      const firstOption = {
+      const baseCardStructure = {
         colorId: i,
         color: colors[i],
         flipped: false,
       }
-      const secondOption = {
-        colorId: i,
-        color: colors[i],
-        flipped: false,
-      }
-
+      const firstOption = baseCardStructure;
+      const secondOption = baseCardStructure;
       newGame.push(firstOption)
       newGame.push(secondOption)
     }
@@ -36,13 +32,19 @@ const Game = ({ options, setOptions, highScore, setHighScore }) => {
       setTimeout(() => {
         const bestPossible = game.length
         let multiplier
-  
-        if (options === 12) {
-          multiplier = 5
-        } else if (options === 18) {
-          multiplier = 2.5
-        } else if (options === 24) {
-          multiplier = 1
+
+        switch(options) {
+          case 12:
+            multiplier = 5;
+            break;
+          case 18:
+            multiplier = 2.5
+            break;
+          case 24:
+            multiplier = 1;
+            break;
+          default:
+            console.log('');
         }
   
         const pointsLost = multiplier * (0.66 * flippedCount - bestPossible)
@@ -56,12 +58,12 @@ const Game = ({ options, setOptions, highScore, setHighScore }) => {
   
         if (score > highScore) {
           setHighScore(score)
-          const json = JSON.stringify(score)
-          localStorage.setItem('gamehighscore', json)
+          const transformScore = JSON.stringify(score);
+          localStorage.setItem('gamehighscore', transformScore);
         }
   
-        const newGame = message.info(`You Win!, SCORE: ${score.toFixed(1)}`);
-        if (newGame) {
+        const resultsMessage = message.info(`You Win!, SCORE: ${score.toFixed(1)}`);
+        if (resultsMessage) {
           const gameLength = game.length
           Promise.resolve(setOptions(null)).then(
             () => {
@@ -75,39 +77,69 @@ const Game = ({ options, setOptions, highScore, setHighScore }) => {
     }  }, [game])
 
   if (flippedIndexes.length === 2) {
-    const match = game[flippedIndexes[0]].colorId === game[flippedIndexes[1]].colorId
+    const flippedFirstCard = flippedIndexes[0];
+    const flippedSecondCard = flippedIndexes[1];
+    const flippedCards = [...flippedIndexes];
+    const compareCards = game[flippedFirstCard].colorId === game[flippedSecondCard].colorId
   
-    if (match) {
+    if (compareCards) {
       const newGame = [...game]
-      newGame[flippedIndexes[0]].flipped = true
-      newGame[flippedIndexes[1]].flipped = true
+      newGame[flippedFirstCard].flipped = true
+      newGame[flippedSecondCard].flipped = true
       setGame(newGame)
   
-      const newIndexes = [...flippedIndexes]
-      newIndexes.push(false)
-      setFlippedIndexes(newIndexes)
+      flippedCards.push(false)
+      setFlippedIndexes(flippedCards)
     } else {
-      const newIndexes = [...flippedIndexes]
-      newIndexes.push(true)
-      setFlippedIndexes(newIndexes)
+      flippedCards.push(true)
+      setFlippedIndexes(flippedCards)
     }
+  }
+
+  const onCardClick = (id, setFlipped) => {
+    const flippedCards = [...flippedIndexes]
+    if (!game[id].flipped && flippedCount % 3 === 0) {
+      setFlipped(state => !state)
+      setFlippedCount(flippedCount + 1)
+      flippedCards.push(id)
+      setFlippedIndexes(flippedCards)
+    } else if (
+      flippedCount % 3 === 1 &&
+      !game[id].flipped &&
+      flippedIndexes.indexOf(id) < 0
+    ) {
+      setFlipped(state => !state)
+      setFlippedCount(flippedCount + 1)
+      flippedCards.push(id)
+      setFlippedIndexes(flippedCards)
+    }
+  }
+
+  const renderCard = () => {
+    if (game.length === 0) {
+      return null;
+    }
+
+    const card = game.map((card, index) => (
+      <div className="card" key={index}>
+        <Card
+          onCardClick={onCardClick}
+          id={index}
+          color={card.color}
+          flippedCount={flippedCount}
+          setFlippedCount={setFlippedCount}
+          flippedIndexes={flippedIndexes}
+          setFlippedIndexes={setFlippedIndexes}
+        />
+      </div>
+    ));
+
+    return card;
   }
 
     return game.length !== 0 && (
       <div id="cards">
-        {game.map((card, index) => (
-          <div className="card" key={index}>
-            <Card
-              id={index}
-              color={card.color}
-              game={game}
-              flippedCount={flippedCount}
-              setFlippedCount={setFlippedCount}
-              flippedIndexes={flippedIndexes}
-              setFlippedIndexes={setFlippedIndexes}
-            />
-          </div>
-        ))}
+        {renderCard()}
       </div>
     )
   }

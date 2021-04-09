@@ -5,13 +5,13 @@ import logo from '../../assets/logo.png';
 const Card = ({
   id,
   color,
-  game,
   flippedCount,
   setFlippedCount,
   flippedIndexes,
   setFlippedIndexes,
+  onCardClick
 }) => {
-  const [flipped, set] = useState(false)
+  const [flipped, setFlipped] = useState(false)
   const {transform, opacity} = useSpring({
     opacity: flipped ? 1 : 0,
     transform: `perspective(600px) rotateX(${flipped ? 180 : 0}deg)`,
@@ -21,7 +21,7 @@ const Card = ({
   useEffect(() => {
     if (flippedIndexes[2] === true && flippedIndexes.indexOf(id) > -1) {
       setTimeout(() => {
-        set(state => !state)
+        setFlipped(state => !state)
         setFlippedCount(flippedCount + 1)
         setFlippedIndexes([])
       }, 1000)
@@ -31,28 +31,8 @@ const Card = ({
     }
   }, [flippedIndexes])
 
-  const onCardClick = () => {
-    if (!game[id].flipped && flippedCount % 3 === 0) {
-      set(state => !state)
-      setFlippedCount(flippedCount + 1)
-      const newIndexes = [...flippedIndexes]
-      newIndexes.push(id)
-      setFlippedIndexes(newIndexes)
-    } else if (
-      flippedCount % 3 === 1 &&
-      !game[id].flipped &&
-      flippedIndexes.indexOf(id) < 0
-    ) {
-      set(state => !state)
-      setFlippedCount(flippedCount + 1)
-      const newIndexes = [...flippedIndexes]
-      newIndexes.push(id)
-      setFlippedIndexes(newIndexes)
-    }
-  }
-
   return (
-    <div onClick={onCardClick}>
+    <div onClick={() => onCardClick(id, setFlipped)}>
       <a.div
         className="c back"
         style={{
